@@ -24,7 +24,7 @@ dependencies:
   audioplayers: ^6.4.0
   shared_preferences: ^2.5.3
   confetti: ^0.8.0
-  speech_to_text: ^7.0.0
+  speech_to_text: ^7.3.0
   firebase_storage: ^12.4.5
   flutter_image_compress: ^2.4.0
   image_picker: ^1.1.2
