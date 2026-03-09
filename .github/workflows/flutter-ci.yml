@@ -7,6 +7,10 @@ on:
     branches: ["main"]
   workflow_dispatch:
 
+concurrency:
+  group: mobile-build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   android-apk:
     runs-on: ubuntu-latest
@@ -46,31 +50,7 @@ jobs:
           if [ -n "$ANDROID_GOOGLE_SERVICES_JSON" ]; then
             printf '%s' "$ANDROID_GOOGLE_SERVICES_JSON" > android/app/google-services.json
           else
-            cat > android/app/google-services.json <<'JSON'
-            {
-              "project_info": {
-                "project_number": "1234567890",
-                "project_id": "replace-me",
-                "storage_bucket": "replace-me.appspot.com"
-              },
-              "client": [
-                {
-                  "client_info": {
-                    "mobilesdk_app_id": "1:1234567890:android:replace",
-                    "android_client_info": {
-                      "package_name": "com.example.lets_venture"
-                    }
-                  },
-                  "api_key": [
-                    {
-                      "current_key": "REPLACE_ME"
-                    }
-                  ]
-                }
-              ],
-              "configuration_version": "1"
-            }
-            JSON
+            printf '%s' '{"project_info":{"project_number":"1234567890","project_id":"replace-me","storage_bucket":"replace-me.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:1234567890:android:replace","android_client_info":{"package_name":"com.example.lets_venture"}},"api_key":[{"current_key":"REPLACE_ME"}]}],"configuration_version":"1"}' > android/app/google-services.json
           fi
 
       - name: Install dependencies
@@ -88,6 +68,7 @@ jobs:
 
   ios-ipa:
     runs-on: macos-latest
+    if: github.event_name != 'pull_request'
 
     steps:
       - name: Checkout
@@ -98,6 +79,16 @@ jobs:
         with:
           channel: stable
           cache: true
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cocoapods
+            ~/Library/Caches/CocoaPods
+          key: ${{ runner.os }}-cocoapods-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cocoapods-
 
       - name: Prepare firebase_options.dart
         shell: bash
@@ -117,6 +108,22 @@ jobs:
         run: |
           if [ -n "$IOS_GOOGLE_SERVICE_INFO_PLIST" ]; then
             printf '%s' "$IOS_GOOGLE_SERVICE_INFO_PLIST" > ios/Runner/GoogleService-Info.plist
+          else
+            printf '%s\n' \
+              '<?xml version="1.0" encoding="UTF-8"?>' \
+              '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' \
+              '<plist version="1.0"><dict>' \
+              '<key>API_KEY</key><string>REPLACE_ME</string>' \
+              '<key>BUNDLE_ID</key><string>com.example.lets_venture</string>' \
+              '<key>GCM_SENDER_ID</key><string>1234567890</string>' \
+              '<key>GOOGLE_APP_ID</key><string>1:1234567890:ios:replace</string>' \
+              '<key>IS_ANALYTICS_ENABLED</key><false/>' \
+              '<key>IS_GCM_ENABLED</key><true/>' \
+              '<key>IS_SIGNIN_ENABLED</key><true/>' \
+              '<key>PLIST_VERSION</key><string>1</string>' \
+              '<key>PROJECT_ID</key><string>replace-me</string>' \
+              '<key>STORAGE_BUCKET</key><string>replace-me.appspot.com</string>' \
+              '</dict></plist>' > ios/Runner/GoogleService-Info.plist
           fi
 
       - name: Install dependencies
