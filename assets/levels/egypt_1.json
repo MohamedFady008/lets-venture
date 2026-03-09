@@ -1,0 +1,19 @@
+{"pixelNumbers": [
+    null,null,null,null,null,null,null,null,0,0,0,0,null,null,null,null,
+    null,null,null,null,null,null,0,0,1,1,1,1,0,0,0,null,
+    0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,
+    0,1,1,1,1,1,1,1,1,0,0,0,1,1,1,0,
+    0,1,1,1,1,1,1,0,0,0,0,0,0,0,1,0,
+    0,1,1,1,1,1,0,1,1,0,0,0,1,1,0,0,
+    0,0,0,0,0,0,0,1,1,0,0,0,1,1,1,0,
+    null,null,null,null,null,null,0,0,0,0,0,0,0,0,0,0,
+    null,null,null,null,null,null,null,null,0,0,0,2,0,null,null,null,
+    null,null,null,null,null,null,null,null,0,0,null,2,0,null,null,null,
+    0,0,0,null,null,null,null,0,0,null,null,2,0,null,null,null,
+    0,2,0,null,null,0,0,0,null,null,null,2,0,null,null,null,
+    0,2,0,0,0,0,null,null,null,null,null,2,0,null,null,null,
+    null,0,0,0,null,null,null,null,null,null,null,2,2,null,null,null,
+    null,null,null,null,null,null,null,null,null,null,null,null,null,null,
+    null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null
+], 
+"palette": [4278190080, 4281242514, 4294825556]}
