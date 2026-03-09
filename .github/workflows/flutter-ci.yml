@@ -60,7 +60,7 @@ jobs:
         run: flutter build apk --release
 
       - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: app-release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
@@ -141,7 +141,7 @@ jobs:
           zip -r Runner-unsigned.ipa Payload
 
       - name: Upload IPA artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: runner-unsigned-ipa
           path: build/ios/ipa/Runner-unsigned.ipa
