@@ -20,7 +20,7 @@ dependencies:
   google_fonts: ^6.1.0
   webview_flutter: ^4.2.2
   flutter_inappwebview: ^6.1.5
-  webview_flutter_android: ^4.7.0
+  webview_flutter_android: ^4.10.13
   audioplayers: ^6.4.0
   shared_preferences: ^2.5.3
   confetti: ^0.8.0
