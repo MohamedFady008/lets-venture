@@ -1,14 +1,93 @@
-name: Flutter CI
+name: Mobile Build CI
 
 on:
   push:
     branches: ["main"]
   pull_request:
     branches: ["main"]
+  workflow_dispatch:
 
 jobs:
-  analyze-and-test:
+  android-apk:
     runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Prepare firebase_options.dart
+        shell: bash
+        env:
+          FIREBASE_OPTIONS_DART: ${{ secrets.FIREBASE_OPTIONS_DART }}
+        run: |
+          if [ -n "$FIREBASE_OPTIONS_DART" ]; then
+            printf '%s' "$FIREBASE_OPTIONS_DART" > lib/firebase_options.dart
+          else
+            cp lib/firebase_options.example.dart lib/firebase_options.dart
+          fi
+
+      - name: Prepare Android Firebase config
+        shell: bash
+        env:
+          ANDROID_GOOGLE_SERVICES_JSON: ${{ secrets.ANDROID_GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$ANDROID_GOOGLE_SERVICES_JSON" ]; then
+            printf '%s' "$ANDROID_GOOGLE_SERVICES_JSON" > android/app/google-services.json
+          else
+            cat > android/app/google-services.json <<'JSON'
+            {
+              "project_info": {
+                "project_number": "1234567890",
+                "project_id": "replace-me",
+                "storage_bucket": "replace-me.appspot.com"
+              },
+              "client": [
+                {
+                  "client_info": {
+                    "mobilesdk_app_id": "1:1234567890:android:replace",
+                    "android_client_info": {
+                      "package_name": "com.example.lets_venture"
+                    }
+                  },
+                  "api_key": [
+                    {
+                      "current_key": "REPLACE_ME"
+                    }
+                  ]
+                }
+              ],
+              "configuration_version": "1"
+            }
+            JSON
+          fi
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Android APK
+        run: flutter build apk --release
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+
+  ios-ipa:
+    runs-on: macos-latest
 
     steps:
       - name: Checkout
@@ -18,20 +97,45 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          cache: true
 
-      - name: Use Firebase options template for CI
-        run: cp lib/firebase_options.example.dart lib/firebase_options.dart
+      - name: Prepare firebase_options.dart
+        shell: bash
+        env:
+          FIREBASE_OPTIONS_DART: ${{ secrets.FIREBASE_OPTIONS_DART }}
+        run: |
+          if [ -n "$FIREBASE_OPTIONS_DART" ]; then
+            printf '%s' "$FIREBASE_OPTIONS_DART" > lib/firebase_options.dart
+          else
+            cp lib/firebase_options.example.dart lib/firebase_options.dart
+          fi
+
+      - name: Prepare iOS Firebase config
+        shell: bash
+        env:
+          IOS_GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.IOS_GOOGLE_SERVICE_INFO_PLIST }}
+        run: |
+          if [ -n "$IOS_GOOGLE_SERVICE_INFO_PLIST" ]; then
+            printf '%s' "$IOS_GOOGLE_SERVICE_INFO_PLIST" > ios/Runner/GoogleService-Info.plist
+          fi
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Analyze
-        run: flutter analyze
+      - name: Build iOS app (no code signing)
+        run: flutter build ios --release --no-codesign
 
-      - name: Test (if present)
+      - name: Package unsigned IPA
+        shell: bash
         run: |
-          if [ -d test ]; then
-            flutter test
-          else
-            echo "No test directory. Skipping flutter test."
-          fi
+          mkdir -p build/ios/ipa/Payload
+          cp -R build/ios/iphoneos/Runner.app build/ios/ipa/Payload/
+          cd build/ios/ipa
+          zip -r Runner-unsigned.ipa Payload
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: runner-unsigned-ipa
+          path: build/ios/ipa/Runner-unsigned.ipa
+          if-no-files-found: error

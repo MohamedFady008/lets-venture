@@ -64,6 +64,26 @@ flutter test
 
 If your project has no `test/` directory yet, create one before running tests.
 
+## GitHub Actions (mobile only)
+
+This repository is configured to build:
+
+- Android release APK
+- iOS unsigned IPA
+
+No web build job is included.
+
+### CI secrets (recommended)
+
+Add these repository secrets for real Firebase-backed builds:
+
+- `FIREBASE_OPTIONS_DART` -> full content of `lib/firebase_options.dart`
+- `ANDROID_GOOGLE_SERVICES_JSON` -> full content of `android/app/google-services.json`
+- `IOS_GOOGLE_SERVICE_INFO_PLIST` -> full content of `ios/Runner/GoogleService-Info.plist`
+
+If secrets are not provided, CI uses placeholders where possible so compile can
+still proceed, but Firebase functionality will not be valid in produced apps.
+
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE).
